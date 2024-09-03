@@ -20,7 +20,7 @@ class ecwidCall:
         self.trekppId='570262509'
         self.kidsspId='94782479'
         self.mtnStrapId='116311087'
-        self.token='secret_FDhzyYxNp8DV7Jpt1f9xuNQddT2sy9UZ'
+        self.token=''
     def getFromEcwid(self,productId,variationId):
         url = f"https://app.ecwid.com/api/v3/{self.storeId}/products/{productId}/combinations/{variationId}"
 
