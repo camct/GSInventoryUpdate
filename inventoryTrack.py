@@ -20,7 +20,7 @@ class ecwidCall:
         self.trekppId='570262509'
         self.kidsspId='94782479'
         self.mtnStrapId='116311087'
-        self.token='secret_FDhzyYxNp8DV7Jpt1f9xuNQddT2sy9UZ'
+        self.token=''
     def getFromEcwid(self,productId,variationId):
         url = f"https://app.ecwid.com/api/v3/{self.storeId}/products/{productId}/combinations/{variationId}"
 
@@ -258,26 +258,25 @@ if __name__=='__main__':
     time=round(datetime.timestamp(now))
 
     # -----Get orders from past interval
-    interval=1000000
+    interval=60
     orders=x.getOrders(str(time),str(time-interval))
-    print(orders)
 
-    # if orders:
-	# # -----Write to a file
-    #     unixTimeStamp = datetime.fromtimestamp(time-interval)
-    #     f=open('inventoryUpdateLog.txt', 'a')
-    #     f.write("----------------------\n")
-    #     f.write("Orders from " + str(unixTimeStamp) + " to " + str(now) + "\n")
+    if orders:
+	# -----Write to a file
+        unixTimeStamp = datetime.fromtimestamp(time-interval)
+        f=open('inventoryUpdateLog.txt', 'a')
+        f.write("----------------------\n")
+        f.write("Orders from " + str(unixTimeStamp) + " to " + str(now) + "\n")
 
-    #     # -----Get all mountain strap variation IDs and their stock quantity
-    #     quantities=x.getVariationIDs(x.mtnStrapId)
+        # -----Get all mountain strap variation IDs and their stock quantity
+        quantities=x.getVariationIDs(x.mtnStrapId)
 
-    #     # -----Update these orders (If stock quantity is 0, will be removed from original grass sticks list)
-    #     for i in orders:
-    #         json=quantities[i[0]]
-    #         amount=orders[i]
-    #         strapName=i[0]
-    #         f.write("Order id is " + str(json['id']) + " and productId is " + str(i[1]) + ".\n")
-    #         x.postToEcwid(json,amount,strapName)
-    #     f.close()
+        # -----Update these orders (If stock quantity is 0, will be removed from original grass sticks list)
+        for i in orders:
+            json=quantities[i[0]]
+            amount=orders[i]
+            strapName=i[0]
+            f.write("Order id is " + str(json['id']) + " and productId is " + str(i[1]) + ".\n")
+            x.postToEcwid(json,amount,strapName)
+        f.close()
 
