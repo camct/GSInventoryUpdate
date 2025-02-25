@@ -37,16 +37,16 @@ class ecwidCall:
         Update Ecwid mountain strap inventories
         """
 
-        f.write("Stock quantity of " + mtnStrap + " was " + str(jsonData['quantity']) + ". It is being updated to " + str(jsonData['quantity']-amountPurchased) + ".")
+        self.writeToLog("Stock quantity of " + mtnStrap + " was " + str(jsonData['quantity']) + ". It is being updated to " + str(jsonData['quantity']-amountPurchased) + ".")
         jsonData['quantity']-=amountPurchased
         if jsonData['quantity']<=0:
             productIds = [self.ogspId,self.tspId,self.rtspId,self.trekppId,self.kidsspId]
-            f.write(str(mtnStrap) + " is out of stock.\n")
+            self.writeToLog(str(mtnStrap) + " is out of stock.\n")
             for productId in productIds:
-                data=x.getProduct(productId)
-                x.deleteOptionValue(data,mtnStrap,productId)
+                data=self.getProduct(productId)
+                self.deleteOptionValue(data,mtnStrap,productId)
             if jsonData['quantity']<0:
-                f.write(mtnStrap + " was purchased over stock!!!\n")
+                self.writeToLog(mtnStrap + " was purchased over stock!!!\n")
                 msg = f"{mtnStrap} was purchased over stock"
                 textNotifier.send_message(6103246241,'tmobile',msg)
                 emailNotifier.send_email('andrew@grasssticks.com',msg)
@@ -62,7 +62,7 @@ class ecwidCall:
         }
 
         response = requests.put(url, headers=headers, json=jsonData)
-        f.write("Stock quantity for " + str(mtnStrap) + " was decreased by " + str(amountPurchased) + "\n")
+        self.writeToLog("Stock quantity for " + str(mtnStrap) + " was decreased by " + str(amountPurchased) + "\n")
 
         print(response.text)
 
@@ -168,7 +168,7 @@ class ecwidCall:
                         break
                 if indexToRemove!='inf': 
                     del choices[indexToRemove]
-                    f.write(str(strap) + " was deleted from Original Grass Sticks option values\n")
+                    self.writeToLog(str(strap) + f" was deleted from {productId}'s option values\n")
                 break
 
         url = f"https://app.ecwid.com/api/v3/{self.storeId}/products/{productId}"
@@ -180,7 +180,7 @@ class ecwidCall:
         }
 
         response = requests.put(url, headers=headers, json=jsonData)
-        f.write(strap + " was deleted from the " + str(jsonData['name']) + " listing.")
+        self.writeToLog(strap + " was deleted from the " + str(jsonData['name']) + " listing.")
 
         print(response.text)
 
@@ -228,26 +228,23 @@ class ecwidCall:
 
         for strap in strapsInInventory:
             if strap not in currentStraps:
-                f=open('inventoryUpdateLog.txt', 'a')
-                f.write('----------------------\n')
-                f.write(f'{strap} was added to all ski pole products')
+                self.writeToLog('----------------------\n')
+                self.writeToLog(f'{strap} was added to {productId}\n')
                 newOption=dict()
                 newOption['text']=strap
-                newOption['priceModifier']=18
+                newOption['priceModifier']=19.99
                 newOption['priceModifierType']='ABSOLUTE'
                 newOption['textTranslated']={'de':'','es_419':'','ja':'','en':f'{strap}', 'fr':'','es':''}
                 for i in range(len(options)):
                     if options[i]['name']=='Strap':
                         choices=options[i]['choices']
-                        choices.append(newOption)
-                f.close()
+                        choices.insert(1,newOption)
         
-        # for i in range(len(options)):
-        #     if options[i]['name']=='Strap':
-        #         choices=(options[i]['choices'])
-        #         for choice in range(len(choices)):
-        #             print(choices[choice])
         return data
+
+    def writeToLog(self,message):
+        with open('inventoryUpdateLog.txt', 'a') as f:
+            f.write(message+'\n')
 
 if __name__=='__main__':    
 
@@ -264,9 +261,8 @@ if __name__=='__main__':
     if orders:
 	# -----Write to a file
         unixTimeStamp = datetime.fromtimestamp(time-interval)
-        f=open('inventoryUpdateLog.txt', 'a')
-        f.write("----------------------\n")
-        f.write("Orders from " + str(unixTimeStamp) + " to " + str(now) + "\n")
+        x.writeToLog("----------------------\n")
+        x.writeToLog("Orders from " + str(unixTimeStamp) + " to " + str(now) + "\n")
 
         # -----Get all mountain strap variation IDs and their stock quantity
         quantities=x.getVariationIDs(x.mtnStrapId)
@@ -276,7 +272,6 @@ if __name__=='__main__':
             json=quantities[i[0]]
             amount=orders[i]
             strapName=i[0]
-            f.write("Order id is " + str(json['id']) + " and productId is " + str(i[1]) + ".\n")
+            x.writeToLog("Order id is " + str(json['id']) + " and productId is " + str(i[1]) + ".\n")
             x.postToEcwid(json,amount,strapName)
-        f.close()
 
